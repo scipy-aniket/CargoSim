@@ -1,0 +1,15 @@
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Jupyter/IPython Notebooks
+*.ipynb
+.ipynb_checkpoints/
+
+# Result and Output Directories
+pipeline_test/
+parameter_scan_results/
+scan_results/
+tracks/
+tracks_out/
