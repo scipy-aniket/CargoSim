@@ -262,7 +262,6 @@ def run_pipeline(n_tracks: int, p: dict, save_tracks: bool = False, output_dir: 
     return results_df
 
 if __name__ == "__main__":
-    # Test block
-    print("Running pipeline setup check...")
-    df = run_pipeline(n_tracks=4, p=default_params, save_tracks=True, output_dir="pipeline_test")
+    print("Running Postprocessing Pipeline...")
+    df = run_pipeline(n_tracks=4, p=default_params, save_tracks=True, output_dir="postprocessed_results")
     print(df.head())
