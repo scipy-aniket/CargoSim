@@ -75,13 +75,21 @@ def run_parameter_scan(n_kinesin_range: list, n_dynein_range: list, n_tracks_per
             # Average the results over the N tracks to get single data point for the heatmap
             if not results_df.empty:
                 mean_stats = results_df.mean(numeric_only=True).to_dict()
-                # Remove track_id mean as it doesn't make sense
-                if 'track_id' in mean_stats:
-                    del mean_stats['track_id']
+                std_stats = results_df.std(numeric_only=True).to_dict()
                 
-                mean_stats['n_kinesin'] = k
-                mean_stats['n_dynein'] = d
-                all_summary_stats.append(mean_stats)
+                combined_stats = {
+                    'n_kinesin': k, 
+                    'n_dynein': d, 
+                    'N': len(results_df)
+                }
+                
+                for col_name in mean_stats:
+                    if col_name == 'track_id':
+                        continue
+                    combined_stats[col_name] = mean_stats[col_name]
+                    combined_stats[f"{col_name}_std"] = std_stats[col_name]
+                
+                all_summary_stats.append(combined_stats)
 
     master_df = pd.DataFrame(all_summary_stats)
     master_csv_path = os.path.join(output_dir, "master_scan_results.csv")
@@ -97,7 +105,7 @@ if __name__ == "__main__":
     # Define ranges for the scan
     KINESIN_RANGE = [1, 2, 3]
     DYNEIN_RANGE = [1, 2, 4, 6]
-    TRACKS_PER_POINT = 4  # Keeping it low for quick testing, change as needed for production runs
+    TRACKS_PER_POINT = 4
     
     run_parameter_scan(
         n_kinesin_range=KINESIN_RANGE,
