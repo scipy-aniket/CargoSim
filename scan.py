@@ -103,9 +103,9 @@ def run_parameter_scan(n_kinesin_range: list, n_dynein_range: list, n_tracks_per
 
 if __name__ == "__main__":
     # Define ranges for the scan
-    KINESIN_RANGE = [1, 2, 3]
-    DYNEIN_RANGE = [1, 2, 4, 6]
-    TRACKS_PER_POINT = 4
+    KINESIN_RANGE = [1, 2]
+    DYNEIN_RANGE = [2, 3, 4, 5, 6]
+    TRACKS_PER_POINT = 1000
     
     run_parameter_scan(
         n_kinesin_range=KINESIN_RANGE,

@@ -232,7 +232,7 @@ def plot_overlay(tracks_dict: dict, output_file: str):
     plt.savefig(output_file, dpi=150)
     plt.close()
 
-def run_pipeline(n_tracks: int, p: dict, save_tracks: bool = False, output_dir: str = "tracks_out", max_workers: int = 4) -> pd.DataFrame:
+def run_pipeline(n_tracks: int, p: dict, save_tracks: bool = False, output_dir: str = "tracks_out", max_workers: int = 10) -> pd.DataFrame:
     print(f"Generating {n_tracks} tracks using {max_workers} processes...")
     
     tracks_dict = {}
