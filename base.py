@@ -538,8 +538,8 @@ class Cargo:
                     total_rate += rate
 
         if total_rate == 0:
-            print("No events can occur. Advancing time by small delta.")
-            self.time += 0.01
+            print("No events can occur. Advancing time by small delta.") # this should not ever happen
+            # self.time += 0.01
             return
 
         # 4. Determine Time Step
