@@ -20,7 +20,7 @@ The codebase is organized into a modular, object-oriented structure consisting o
     * Iterates over 2D grids of motor counts (e.g., sweeping combinations of $N$ Kinesin vs. $M$ Dynein).
     * Aggregates the statistical outputs from `pipeline.py` into a master dataframe.
     * Generates 2D heatmaps for various metrics.
-
+* **`fitting.py`**: Theoretical analytical module. Uses transition rate matrices and exact master equation solutions to fit the inter-motor hindrance parameter ($\beta$) to experimental Global Mean Inactive Time (GMIT) data via $\chi^2$ minimization.
 ## Execution & Usage
 
 ### 1. Running a Single Pipeline
