@@ -517,14 +517,11 @@ class Cargo:
         self.history['n_dynein_inactive'].append(d_inactive)
 
     def step_gillespie(self):
-        # 1. Physics & State
         self.update_position()
         sys_state = self.get_system_state()
 
-        # 2. Record Data (Before the event happens)
         self.record_state()
 
-        # 3. Calculate Rates
         all_rates = []
         all_events = []
         total_rate = 0.0
@@ -542,12 +539,10 @@ class Cargo:
             # self.time += 0.01
             return
 
-        # 4. Determine Time Step
         r1 = np.random.random()
         tau = (1.0 / total_rate) * np.log(1.0 / r1)
         self.time += tau
 
-        # 5. Select Event
         r2 = np.random.random() * total_rate
         cumulative_rate = 0.0
         selected_event = None
@@ -557,7 +552,6 @@ class Cargo:
                 selected_event = all_events[i]
                 break
 
-        # 6. Execute Event
         if selected_event:
             motor_obj, event_type = selected_event
             if event_type == 'step':
