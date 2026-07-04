@@ -47,18 +47,13 @@ def generate_phase_plots(master_df: pd.DataFrame, output_dir: str):
 
 
 def run_parameter_scan(n_kinesin_range: list, n_dynein_range: list, n_tracks_per_point: int = 10, output_dir: str = "scan_results"):
-    print(f"Starting parameter scan...")
-    print(f"Kinesin range: {n_kinesin_range}")
-    print(f"Dynein range:  {n_dynein_range}")
-    print(f"Tracks per configuration: {n_tracks_per_point}")
-    
     os.makedirs(output_dir, exist_ok=True)
     
     all_summary_stats = []
     
     for k in n_kinesin_range:
         for d in n_dynein_range:
-            print(f"\n--- Scanning n_kinesin = {k}, n_dynein = {d} ---")
+            print(f"n_kinesin = {k}, n_dynein = {d}")
             
             # Prepare configuration
             p = copy.deepcopy(default_params)
@@ -94,12 +89,10 @@ def run_parameter_scan(n_kinesin_range: list, n_dynein_range: list, n_tracks_per
     master_df = pd.DataFrame(all_summary_stats)
     master_csv_path = os.path.join(output_dir, "master_scan_results.csv")
     master_df.to_csv(master_csv_path, index=False)
-    print(f"\nMaster scan results saved to {master_csv_path}")
+    print(f"\nScan results saved to {master_csv_path}")
     
     # Generate Phase Plots
-    print("\nGenerating phase plots...")
     generate_phase_plots(master_df, output_dir=os.path.join(output_dir, "phase_plots"))
-    print("Scan completed successfully!")
 
 if __name__ == "__main__":
     # Define ranges for the scan
