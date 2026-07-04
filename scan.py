@@ -32,7 +32,6 @@ def generate_phase_plots(master_df: pd.DataFrame, output_dir: str):
         plt.figure(figsize=(8, 6))
         sns.heatmap(pivot_table, annot=True, fmt=".2f", cmap="viridis", cbar_kws={'label': metric})
         
-        # Invert Y axis so that 1 dynein is at the bottom, increasing upwards
         plt.gca().invert_yaxis()
         
         plt.title(f"Phase Plot: {metric}")
@@ -60,8 +59,7 @@ def run_parameter_scan(n_kinesin_range: list, n_dynein_range: list, n_tracks_per
             p['n_kinesin'] = k
             p['n_dynein'] = d
             
-            # Create a specific directory for the individual tracks output if needed,
-            # or just write everything in a uniform place. Here we use a dedicated folder per state.
+            # jst write everything in a uniform place. Here we use a dedicated folder per state.
             state_out_dir = os.path.join(output_dir, f"traces_K{k}_D{d}")
             
             # Run pipeline (don't save individual tracks to save disk, but keep the overlay and postprocessed stats)
