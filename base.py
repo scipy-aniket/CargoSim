@@ -105,6 +105,9 @@ class GenericMotor:
         """
         self.is_bound = False
         self.head_pos = None  # It doesn't have a position on the MT anymore
+        
+        if hasattr(self, 'in_catch_regime'):
+            self.in_catch_regime = False
 
     def step(self):
         """
@@ -141,105 +144,7 @@ class Dynein(GenericMotor):
 
         # State: False = Active(D), True = Inhibited(D*)
         self.is_inhibited = False
-
-    def __repr__(self):
-        base = super().__repr__()
-        status = "INHIBITED" if self.is_inhibited else "ACTIVE"
-        return f"{base} [{status}]"
-
-    def calculate_rates(self, cargo_position: float, system_state: Optional[dict] = None) -> dict:
-        """
-        Extends base method to include activation/inhibition transitions.
-        system_state = {'n_inactive': int, 'n_active': int}
-        """
-        rates = {}
-
-        # Case 1: Bound
-        if self.is_bound:
-            force = self.get_force(cargo_position)
-            hindering_load = force * self.direction
-
-            rates['step'] = self.step_rate_function(hindering_load)
-            rates['unbind'] = self.unbind_rate_function(force)
-            return rates
-
-        # Case 2: Unbound
-
-        # (D -> D_MT)
-        if not self.is_inhibited:
-            rates['bind'] = self.binding_rate
-            return rates
-
-        # (D* -> D)
-        if self.is_inhibited:
-            if system_state is None:
-                # Fallback if no state provided (should not happen in proper sim)
-                raise ValueError("System state required for Dynein activation rate calculation.")
-
-            # Get n_inactive from system state
-            n_inactive = system_state.get('n_inactive')
-
-            # # k = k0 / (1 + beta * n * (n - 1))
-            # denominator = 1.0 + self.beta * n_inactive * (n_inactive - 1)
-            # activation_rate = self.k_activation_0 / denominator
-
-            # form of k changed to k = k0/(1 + beta*(n-1))
-            denominator = 1.0 + self.beta * (n_inactive - 1)
-            activation_rate = self.k_activation_0 / denominator
-
-            rates['activate'] = activation_rate
-            return rates
-
-    def unbind(self, force: float = 0.0):
-        """
-        Transitions the motor from Bound -> Unbound.
-        If F > F_stall, go to Inhibited state(D*), else Active(D).
-        """
-
-        self.is_bound = False
-        self.head_pos = None
-
-        if abs(force) > self.inhibition_trigger_force:
-            self.is_inhibited = True  # Go to D*
-        else:
-            self.is_inhibited = False  # Go to D
-
-    def activate(self):
-        """
-        Transitions the motor from Inhibited(D*) -> Active(D).
-        """
-        self.is_inhibited = False
-
-
-class DyneinActive(GenericMotor):
-
-    """Dynein motor subclass without hindered activation."""
-
-    def __init__(self,
-                 motor_id: int,
-                 stiffness: float,
-                 rest_length: float,
-                 step_size: float,
-                 binding_rate: float,
-                 func_stepping_rate: Callable[[float], float],
-                 func_unbinding_rate: Callable[[float], float],
-                 stall_force: float,
-                 k_activation_0: float,
-                 beta_hindrance: float,
-                 inhibition_trigger_force: float):
-
-        # Initialize base GenericMotor
-        super().__init__(motor_id, stiffness, rest_length, step_size, binding_rate,
-                         func_stepping_rate, func_unbinding_rate, direction = -1.0)
-
-        self.motor_type = "Dynein"
-        self.stall_force = stall_force  # pN
-        self.k_activation_0 = k_activation_0
-        self.beta = beta_hindrance
-        self.inhibition_trigger_force = inhibition_trigger_force  # pN
-
-        # State: False = Active(D), True = Inhibited(D*)
-        self.is_inhibited = False
+        self.in_catch_regime = False
 
     def __repr__(self):
         base = super().__repr__()
@@ -293,6 +198,104 @@ class DyneinActive(GenericMotor):
 
         self.is_bound = False
         self.head_pos = None
+        self.in_catch_regime = False
+
+        if abs(force) > self.inhibition_trigger_force:
+            self.is_inhibited = True  # Go to D*
+        else:
+            self.is_inhibited = False  # Go to D
+
+    def activate(self):
+        """
+        Transitions the motor from Inhibited(D*) -> Active(D).
+        """
+        self.is_inhibited = False
+
+
+class DyneinActive(GenericMotor):
+
+    """Dynein motor subclass without hindered activation."""
+
+    def __init__(self,
+                 motor_id: int,
+                 stiffness: float,
+                 rest_length: float,
+                 step_size: float,
+                 binding_rate: float,
+                 func_stepping_rate: Callable[[float], float],
+                 func_unbinding_rate: Callable[[float], float],
+                 stall_force: float,
+                 k_activation_0: float,
+                 beta_hindrance: float,
+                 inhibition_trigger_force: float):
+
+        # Initialize base GenericMotor
+        super().__init__(motor_id, stiffness, rest_length, step_size, binding_rate,
+                         func_stepping_rate, func_unbinding_rate, direction = -1.0)
+
+        self.motor_type = "Dynein"
+        self.stall_force = stall_force  # pN
+        self.k_activation_0 = k_activation_0
+        self.beta = beta_hindrance
+        self.inhibition_trigger_force = inhibition_trigger_force  # pN
+
+        # State: False = Active(D), True = Inhibited(D*)
+        self.is_inhibited = False
+        self.in_catch_regime = False
+
+    def __repr__(self):
+        base = super().__repr__()
+        status = "INHIBITED" if self.is_inhibited else "ACTIVE"
+        return f"{base} [{status}]"
+
+    def calculate_rates(self, cargo_position: float, system_state: Optional[dict] = None) -> dict:
+        """
+        Extends base method to include activation/inhibition transitions.
+        system_state = {'n_inactive': int, 'n_active': int}
+        """
+        rates = {}
+
+        # Case 1: Bound
+        if self.is_bound:
+            force = self.get_force(cargo_position)
+            hindering_load = force * self.direction
+
+            rates['step'] = self.step_rate_function(hindering_load)
+            rates['unbind'] = self.unbind_rate_function(force)
+            return rates
+
+        # Case 2: Unbound
+
+        # (D -> D_MT)
+        if not self.is_inhibited:
+            rates['bind'] = self.binding_rate
+            return rates
+
+        # (D* -> D)
+        if self.is_inhibited:
+            if system_state is None:
+                # Fallback if no state provided (should not happen in proper sim)
+                raise ValueError("System state required for Dynein activation rate calculation.")
+
+            # Get n_inactive from system state
+            n_inactive = system_state.get('n_inactive')
+
+            # k = k0 / (1 + beta * n * (n - 1))
+            denominator = 1.0 + self.beta * n_inactive * (n_inactive - 1)
+            activation_rate = self.k_activation_0 / denominator
+
+            rates['activate'] = activation_rate
+            return rates
+
+    def unbind(self, force: float = 0.0):
+        """
+        Transitions the motor from Bound -> Unbound.
+        If F > F_stall, go to Inhibited state(D*), else Active(D).
+        """
+
+        self.is_bound = False
+        self.head_pos = None
+        self.in_catch_regime = False
 
         if abs(force) > self.inhibition_trigger_force:
             self.is_inhibited = False
@@ -435,6 +438,9 @@ class Cargo:
         # Optical Trap
         self.k_trap = trap_stiffness
         self.x_trap = trap_center
+        
+        self.cumulative_catch_events = 0
+        self.cumulative_catch_unbinds = 0
 
         # History
         self.history = {
@@ -443,7 +449,11 @@ class Cargo:
             'n_kinesin_bound': [],
             'n_dynein_bound': [],   # L (Attached)
             'n_dynein_active': [],  # j (Detached, Active)
-            'n_dynein_inactive': [] # n_in (Detached, Inhibited)
+            'n_dynein_inactive': [], # n_in (Detached, Inhibited)
+            'catch_bond_events': [],
+            'catch_unbind_events': [],
+            'total_kinesin_force': [],
+            'total_dynein_force': []
         }
 
         # Dictionary to track individual motor heads: {motor_id: [pos_t0, pos_t1...]}
@@ -496,6 +506,8 @@ class Cargo:
         d_bound = 0
         d_active = 0   # Unbound active
         d_inactive = 0 # Unbound inactive
+        total_k_force = 0.0
+        total_d_force = 0.0
 
         for m in self.motors:
             # 1. Record Individual Head Position
@@ -505,11 +517,23 @@ class Cargo:
 
             # 2. Update Counts
             if m.motor_type == "Kinesin":
-                if m.is_bound: k_bound += 1
+                if m.is_bound: 
+                    k_bound += 1
+                    total_k_force += abs(m.get_force(self.x))
 
             elif m.motor_type == "Dynein":
                 if m.is_bound:
                     d_bound += 1
+                    f_mag = abs(m.get_force(self.x))
+                    total_d_force += f_mag
+                    
+                    if f_mag > m.inhibition_trigger_force:
+                        if not m.in_catch_regime:
+                            m.in_catch_regime = True
+                            self.cumulative_catch_events += 1
+                    # Removed the 'else: m.in_catch_regime = False' block.
+                    # Flag now only resets when the motor completely unbinds.
+                        
                 elif m.is_inhibited:
                     d_inactive += 1
                 else:
@@ -519,13 +543,20 @@ class Cargo:
         self.history['n_dynein_bound'].append(d_bound)
         self.history['n_dynein_active'].append(d_active)
         self.history['n_dynein_inactive'].append(d_inactive)
+        self.history['catch_bond_events'].append(self.cumulative_catch_events)
+        self.history['catch_unbind_events'].append(self.cumulative_catch_unbinds)
+        self.history['total_kinesin_force'].append(total_k_force)
+        self.history['total_dynein_force'].append(total_d_force)
 
     def step_gillespie(self):
+        # 1. Physics & State
         self.update_position()
         sys_state = self.get_system_state()
 
+        # 2. Record Data (Before the event happens)
         self.record_state()
 
+        # 3. Calculate Rates
         all_rates = []
         all_events = []
         total_rate = 0.0
@@ -539,14 +570,16 @@ class Cargo:
                     total_rate += rate
 
         if total_rate == 0:
-            print("No events can occur. Advancing time by small delta.") # this should not ever happen
-            # self.time += 0.01
+            print("No events can occur. Advancing time by small delta.")
+            self.time += 0.01
             return
 
+        # 4. Determine Time Step
         r1 = np.random.random()
         tau = (1.0 / total_rate) * np.log(1.0 / r1)
         self.time += tau
 
+        # 5. Select Event
         r2 = np.random.random() * total_rate
         cumulative_rate = 0.0
         selected_event = None
@@ -556,6 +589,7 @@ class Cargo:
                 selected_event = all_events[i]
                 break
 
+        # 6. Execute Event
         if selected_event:
             motor_obj, event_type = selected_event
             if event_type == 'step':
@@ -565,6 +599,8 @@ class Cargo:
             elif event_type == 'unbind':
                 # Pass force for Dynein catch-bond logic
                 force = motor_obj.get_force(self.x)
+                if motor_obj.motor_type == "Dynein" and abs(force) > motor_obj.inhibition_trigger_force:
+                    self.cumulative_catch_unbinds += 1
                 motor_obj.unbind(force)
             elif event_type == 'activate':
                 motor_obj.activate()
