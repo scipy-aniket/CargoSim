@@ -38,6 +38,10 @@ def segment_track_moving_window(track_df: pd.DataFrame,
     nd_reg = np.interp(t_reg, track_df['time'], track_df['n_dynein_bound'])
     nin_reg = np.interp(t_reg, track_df['time'], track_df['n_dynein_inactive'])
     
+    catch_reg = np.interp(t_reg, track_df['time'], track_df['catch_bond_events'])
+    catch_unbind_reg = np.interp(t_reg, track_df['time'], track_df['catch_unbind_events'])
+    k_force_reg = np.interp(t_reg, track_df['time'], track_df['total_kinesin_force'])
+    
     s_pos = pd.Series(pos_reg)
     window_steps = max(1, int(window_size / step_size))
     
@@ -99,6 +103,13 @@ def segment_track_moving_window(track_df: pd.DataFrame,
         avg_k = np.mean(nk_reg[s_idx:e_idx+1])
         avg_d = np.mean(nd_reg[s_idx:e_idx+1])
         avg_in = np.mean(nin_reg[s_idx:e_idx+1])
+        
+        catch_triggered = catch_reg[e_idx] - catch_reg[s_idx]
+        catch_unbinds = catch_unbind_reg[e_idx] - catch_unbind_reg[s_idx]
+        d_star_at_end = nin_reg[e_idx]
+        max_k_force = np.max(k_force_reg[s_idx:e_idx+1]) if (e_idx >= s_idx) else 0.0
+        avg_k_force = np.mean(k_force_reg[s_idx:e_idx+1]) if (e_idx >= s_idx) else 0.0
+        
         is_tow = (avg_k > 0.1) and (avg_d > 0.1)
         
         final_output.append({
@@ -113,6 +124,11 @@ def segment_track_moving_window(track_df: pd.DataFrame,
             'Avg_K': avg_k,
             'Avg_D': avg_d,
             'Avg_D_Inactive': avg_in,
+            'Catch_Events': round(catch_triggered),
+            'Catch_Unbinds': round(catch_unbinds),
+            'D_Star_At_End': round(d_star_at_end),
+            'Max_K_Force': max_k_force,
+            'Avg_K_Force': avg_k_force,
             'Is_Hidden_ToW': is_tow
         })
         
@@ -163,7 +179,7 @@ def generate_single_track(track_id: int, p: dict, save_tracks: bool, output_dir:
         
     return track_id, df
 
-def process_track(track_id: int, track_df: pd.DataFrame) -> dict:
+def process_track(track_id: int, track_df: pd.DataFrame) -> Tuple[dict, pd.DataFrame]:
     segments = segment_track_moving_window(track_df)
     
     final_pos = track_df['cargo_pos'].iloc[-1] if not track_df.empty else 0.0
@@ -177,10 +193,11 @@ def process_track(track_id: int, track_df: pd.DataFrame) -> dict:
             'kinesin_events': 0, 'dynein_events': 0, 'pause_events': 0,
             'frac_kinesin': 0, 'frac_dynein': 0, 'frac_pause': 1.0,
             'num_segments': 0
-        }
+        }, pd.DataFrame()
     
     # Exclude last event as it is usually incomplete
-    seg_complete = segments.iloc[:-1]
+    seg_complete = segments.iloc[:-1].copy()
+    seg_complete['Track_ID'] = track_id
     
     mask_p = seg_complete['State'] == 'P'
     mask_m = seg_complete['State'] == 'M'
@@ -217,7 +234,7 @@ def process_track(track_id: int, track_df: pd.DataFrame) -> dict:
         'frac_dynein': d_dur / tot_dur,
         'frac_pause': s_dur / tot_dur,
         'num_segments': len(seg_complete)
-    }
+    }, seg_complete
 
 def plot_overlay(tracks_dict: dict, output_file: str):
     plt.figure(figsize=(10, 7))
@@ -244,10 +261,13 @@ def run_pipeline(n_tracks: int, p: dict, save_tracks: bool = False, output_dir: 
             
     print("Processing generated tracks...")
     results = []
+    all_segments = []
     for tid, df in tracks_dict.items():
-        res = process_track(tid, df)
+        res, segs = process_track(tid, df)
         results.append(res)
-        
+        if not segs.empty:
+            all_segments.append(segs)
+            
     results_df = pd.DataFrame(results)
     
     os.makedirs(output_dir, exist_ok=True)
@@ -259,6 +279,25 @@ def run_pipeline(n_tracks: int, p: dict, save_tracks: bool = False, output_dir: 
     results_df.to_csv(stats_file, index=False)
     print(f"Processing complete. Statistics saved to {stats_file}")
     
+    if all_segments:
+        combined_segments = pd.concat(all_segments, ignore_index=True)
+        
+        # S Events
+        s_events = combined_segments[combined_segments['State'] == 'S']
+        s_out = os.path.join(output_dir, "S_events.csv")
+        s_events.to_csv(s_out, index=False)
+        print(f"S events saved to {s_out}")
+        
+        # Pure ToW Events (Avg K > 0 and Avg D > 0 and Duration >= 0.05)
+        tow_events = combined_segments[
+            (combined_segments['Avg_K'] > 0) & 
+            (combined_segments['Avg_D'] > 0) &
+            (combined_segments['Duration'] >= 0.05)
+        ]
+        tow_out = os.path.join(output_dir, "ToW_events.csv")
+        tow_events.to_csv(tow_out, index=False)
+        print(f"ToW events saved to {tow_out}")
+        
     return results_df
 
 if __name__ == "__main__":
