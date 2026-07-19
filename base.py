@@ -179,8 +179,12 @@ class Dynein(GenericMotor):
             # Get n_inactive from system state
             n_inactive = system_state.get('n_inactive')
 
-            # k = k0 / (1 + beta * n * (n - 1))
-            denominator = 1.0 + self.beta * n_inactive * (n_inactive - 1)
+            # # k = k0 / (1 + beta * n * (n - 1))
+            # denominator = 1.0 + self.beta * n_inactive * (n_inactive - 1)
+            # activation_rate = self.k_activation_0 / denominator
+
+            # form of k changed to k = k0/(1 + beta*(n-1))
+            denominator = 1.0 + self.beta * (n_inactive - 1)
             activation_rate = self.k_activation_0 / denominator
 
             rates['activate'] = activation_rate
