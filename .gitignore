@@ -14,3 +14,7 @@ scan_results/
 tracks/
 tracks_out/
 postprocessed_results/
+tow_analysis_results/
+
+# Plots
+*.png
