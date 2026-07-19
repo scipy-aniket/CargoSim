@@ -13,7 +13,9 @@ K_FIXED = 2.5
 
 def get_k_hindered(k_base, beta, n_inactive):
     if n_inactive <= 1: return k_base
-    return k_base / (1 + beta * n_inactive * (n_inactive - 1))
+    # return k_base / (1 + beta * n_inactive * (n_inactive - 1))
+    # form of k changed to k = k0/(1 + beta*(n-1))
+    return k_base / (1 + beta * (n_inactive - 1))
 
 def calculate_splitting_probabilities(N, k_base, beta, epsilon, pi):
     if N == 0: return np.array([1.0])
@@ -137,6 +139,7 @@ if __name__ == "__main__":
     df_probs = pd.DataFrame(results).fillna(0)
     print("\nSplitting Probabilities:")
     print(df_probs.to_string(index=False))
+    df_probs.to_csv('splitting_probabilities.csv', index=False)
 
     fig, axes = plt.subplots(3, 3, figsize=(12, 10), constrained_layout=True)
     for i, n in enumerate(range(1, max_N + 1)):
