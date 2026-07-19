@@ -4,8 +4,10 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
 GMIT_N = np.array([2, 3, 4, 5, 6])
-GMIT_T = np.array([0.98, 1.11, 1.46, 1.62, 1.81])
-GMIT_SEM = np.array([0.2, 0.14, 0.28, 0.30, 0.27])
+# GMIT_T = np.array([0.98, 1.11, 1.46, 1.62, 1.81])   # LP Superstall
+# GMIT_SEM = np.array([0.2, 0.14, 0.28, 0.30, 0.27])  # LP Superstall
+GMIT_T = np.array([0.73, 0.89, 0.78, 0.93, 1])  # PASLB Superstall
+GMIT_SEM = np.array([0.16, 0.15, 0.13, 0.27, 0.33])  # PASLB Superstall
 
 EPS_FIXED = 2.0
 PI_FIXED = 2.5
