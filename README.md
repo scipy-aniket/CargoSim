@@ -31,6 +31,10 @@ The codebase consists of seven Python files:
 
 * **`fitting.py`**: Theoretical/analytical module. Uses continuous-time Markov chain (transition rate matrix) master equation solutions to compute, for an ensemble of `N` Dynein motors, the splitting probabilities over final active motor counts and the Global Mean Inactive Time (GMIT).
 
+## Consistency Note
+
+Note: the parameter beta used in all scripts is referred to as "phi" in the manuscript.
+
 ## Execution & Usage
 
 ### 1. Running a Single Pipeline

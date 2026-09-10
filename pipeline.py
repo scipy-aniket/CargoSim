@@ -1,3 +1,5 @@
+# The parameter beta used in all scripts is referred to as "phi" in the manuscript.
+
 import os
 import numpy as np
 import pandas as pd

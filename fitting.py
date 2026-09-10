@@ -3,11 +3,13 @@ import pandas as pd
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
+# The parameter beta used in all scripts is referred to as "phi" in the manuscript.
+
 GMIT_N = np.array([2, 3, 4, 5, 6])
-# GMIT_T = np.array([0.98, 1.11, 1.46, 1.62, 1.81])   # LP Superstall
-# GMIT_SEM = np.array([0.2, 0.14, 0.28, 0.30, 0.27])  # LP Superstall
-GMIT_T = np.array([0.73, 0.89, 0.78, 0.93, 1])  # PASLB Superstall
-GMIT_SEM = np.array([0.16, 0.15, 0.13, 0.27, 0.33])  # PASLB Superstall
+GMIT_T = np.array([0.98, 1.11, 1.46, 1.62, 1.81])   # LP Superstall
+GMIT_SEM = np.array([0.2, 0.14, 0.28, 0.30, 0.27])  # LP Superstall
+# GMIT_T = np.array([0.73, 0.89, 0.78, 0.93, 1])  # PASLB Superstall
+# GMIT_SEM = np.array([0.16, 0.15, 0.13, 0.27, 0.33])  # PASLB Superstall
 
 EPS_FIXED = 2.0
 PI_FIXED = 2.5
@@ -119,8 +121,8 @@ if __name__ == "__main__":
     plt.savefig('gmit_fit.png', dpi=150, bbox_inches='tight')
     plt.show()
 
-    eps_vals = np.linspace(1.0, 4.0, 20)
-    pi_vals = np.linspace(1.0, 10.0, 20)
+    eps_vals = np.linspace(0.1, 4.0, 40)
+    pi_vals = np.linspace(0.1, 10.0, 40)
     best_sol, chi2_map, _ = run_grid_scan(eps_vals, pi_vals)
     print(f"Grid Scan Minimum -> eps:{best_sol['eps']:.2f}, pi:{best_sol['pi']:.2f}, beta:{best_sol['beta']:.2f} (Chi2: {best_sol['chi2']:.4f})")
 
