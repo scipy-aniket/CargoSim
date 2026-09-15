@@ -21,3 +21,6 @@ tow_analysis_results/
 
 # CSV
 *.csv
+
+# DS_Store
+.DS_Store
