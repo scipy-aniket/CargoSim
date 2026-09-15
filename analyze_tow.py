@@ -156,7 +156,7 @@ def generate_comparative_plots(output_dir: str):
 
 
 def main():
-    N_TRACKS = 100
+    N_TRACKS = 1000
     OUTPUT_DIR = "tow_analysis_results"
     
     print(f"Running pipeline for {N_TRACKS} tracks with default parameters...")

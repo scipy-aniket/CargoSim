@@ -1,5 +1,3 @@
-# The parameter beta used in all scripts is referred to as "phi" in the manuscript.
-
 import os
 import numpy as np
 import pandas as pd
@@ -157,7 +155,7 @@ def generate_single_track(track_id: int, p: dict, save_tracks: bool, output_dir:
             motor_id=j, stiffness=p['k_stiffness_dynein'], rest_length=p['rest_length_dynein'],
             step_size=p['stepsize_dynein'], binding_rate=p['pi_d'], func_stepping_rate=dyn_step,
             func_unbinding_rate=dyn_unbind, stall_force=p['f_stall_d'],
-            k_activation_0=p['act_k0'], beta_hindrance=p['beta'], inhibition_trigger_force=p['f_inhibition_trigger_d']
+            k_activation_0=p['act_k0'], phi_hindrance=p['phi'], inhibition_trigger_force=p['f_inhibition_trigger_d']
         )
         cargo.add_motor(d)
 

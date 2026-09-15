@@ -1,5 +1,3 @@
-# The parameter beta used in all scripts is referred to as "phi" in the manuscript.
-
 import numpy as np
 import matplotlib.pyplot as plt
 from typing import Callable, Optional
@@ -131,7 +129,7 @@ class Dynein(GenericMotor):
                  func_unbinding_rate: Callable[[float], float],
                  stall_force: float,
                  k_activation_0: float,
-                 beta_hindrance: float,
+                 phi_hindrance: float,
                  inhibition_trigger_force: float):
 
         # Initialize base GenericMotor
@@ -141,7 +139,7 @@ class Dynein(GenericMotor):
         self.motor_type = "Dynein"
         self.stall_force = stall_force  # pN
         self.k_activation_0 = k_activation_0
-        self.beta = beta_hindrance
+        self.phi = phi_hindrance
         self.inhibition_trigger_force = inhibition_trigger_force  # pN
 
         # State: False = Active(D), True = Inhibited(D*)
@@ -185,11 +183,11 @@ class Dynein(GenericMotor):
             # Get n_inactive from system state
             n_inactive = system_state.get('n_inactive')
 
-            # # k = k0 / (1 + beta * n * (n - 1))
-            # denominator = 1.0 + self.beta * n_inactive * (n_inactive - 1)
+            # # k = k0 / (1 + phi * n * (n - 1))
+            # denominator = 1.0 + self.phi * n_inactive * (n_inactive - 1)
 
-            # k = k0 / (1 + beta * (n - 1))
-            denominator = 1.0 + self.beta * (n_inactive - 1)
+            # k = k0 / (1 + phi * (n - 1))
+            denominator = 1.0 + self.phi * (n_inactive - 1)
             activation_rate = self.k_activation_0 / denominator
 
             rates['activate'] = activation_rate
@@ -231,7 +229,7 @@ class DyneinActive(GenericMotor):
                  func_unbinding_rate: Callable[[float], float],
                  stall_force: float,
                  k_activation_0: float,
-                 beta_hindrance: float,
+                 phi_hindrance: float,
                  inhibition_trigger_force: float):
 
         # Initialize base GenericMotor
@@ -241,7 +239,7 @@ class DyneinActive(GenericMotor):
         self.motor_type = "Dynein"
         self.stall_force = stall_force  # pN
         self.k_activation_0 = k_activation_0
-        self.beta = beta_hindrance
+        self.phi = phi_hindrance
         self.inhibition_trigger_force = inhibition_trigger_force  # pN
 
         # State: False = Active(D), True = Inhibited(D*)
@@ -285,8 +283,8 @@ class DyneinActive(GenericMotor):
             # Get n_inactive from system state
             n_inactive = system_state.get('n_inactive')
 
-            # k = k0 / (1 + beta * (n - 1))
-            denominator = 1.0 + self.beta * (n_inactive - 1)
+            # k = k0 / (1 + phi * (n - 1))
+            denominator = 1.0 + self.phi * (n_inactive - 1)
             activation_rate = self.k_activation_0 / denominator
 
             rates['activate'] = activation_rate

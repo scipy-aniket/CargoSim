@@ -26,7 +26,7 @@ params = {
     'eps_d_flat': 2.0,  # 1/s - Flat rate at super-stall
     'f_d_detach': 0.67,  # pN
     'act_k0': 2.5,  # 1/s - Activation rate k0
-    'beta': 2.53,            #1.1,  # Hindrance parameter; The parameter beta used in all scripts is referred to as "phi" in the manuscript.
+    'phi': 2.53,            #1.1,  # Hindrance parameter
     'pi_d': 2.5,  # 1/s - Binding rate
 
     # TFBD parameters for Dynein
